@@ -1,228 +1,142 @@
 import React from "react";
-import {
-  Stack,
-  Box,
-  Icon,
-  PseudoBox,
-  Flex,
-  Text,
-  Heading,
-  Button,
-  Badge,
-  useDisclosure,
-  Link,
-  IconButton,
-  Grid,
-} from "@chakra-ui/core";
+import {Stack, Box, PseudoBox, Flex, useDisclosure} from "@chakra-ui/core";
 
 import ProductCard from "../components/ProductCard";
 import {useFilteredProducts} from "../hooks";
 import ProductsGrid from "../components/ProductsGrid";
+import ProductsCarousel from "../components/ProductsCarousel";
 
 import {useCart} from "~/cart/hooks";
 import {groupBy} from "~/selectors/group";
 import CartDrawer from "~/cart/components/CartDrawer";
 import {filterBy} from "~/selectors/filter";
 import {useTenant} from "~/tenant/hooks";
-import TenantAvatar from "~/tenant/components/TenantAvatar";
+import {useTranslation} from "~/hooks/translation";
+import CartTotalButton from "~/cart/components/CartTotalButton";
+import TenantHeader from "~/tenant/components/TenantHeader";
+import NoResults from "~/ui/feedback/NoResults";
+import Content from "~/ui/structure/Content";
 
 const ProductsScreen: React.FC = () => {
-  const {add, remove, count, total} = useCart();
+  const {add, remove, items, checkout} = useCart();
+  const t = useTranslation();
   const {isOpen: isCartOpen, onOpen: openCart, onClose: closeCart} = useDisclosure();
   const {products, filters} = useFilteredProducts({available: true});
-  const {banner, title, logo, phone, description} = useTenant();
+  const {highlight, ...tenant} = useTenant();
 
-  const productsByCategory = Object.entries(groupBy(products, (product) => product.category));
   const featuredProducts = filterBy(products, {featured: true});
+  const productsByCategory = groupBy(products, (product) => product.category);
 
   return (
     <>
       <Flex direction="column" height="100%">
-        <Flex as="main" backgroundColor="primary.50" direction="column" flex={1} overflowY="auto">
-          <Box
-            backgroundColor="primary.500"
-            backgroundImage={`url(${banner})`}
-            backgroundPosition="center"
-            backgroundRepeat="no-repeat"
-            backgroundSize="cover"
-            height={{base: 24, sm: 56}}
-            minHeight={{base: 24, sm: 56}}
-            width="100%"
-          />
-          <Box
-            backgroundColor="white"
-            margin="auto"
-            maxWidth={{base: "100%", xl: "80em"}}
-            paddingX={{base: 4, xl: 12}}
-            width="100%"
-          >
-            <Box margin="auto" marginBottom={4}>
-              <Grid
-                gridTemplateAreas={{
-                  base: `"avatar links" "information information"`,
-                  sm: `"avatar information links"`,
-                }}
-                gridTemplateColumns={{
-                  base: `auto`,
-                  sm: `auto 1fr auto`,
-                }}
-                justifyContent="space-between"
+        <Flex
+          as="main"
+          backgroundColor="white"
+          direction="column"
+          flex={1}
+          height="100%"
+          overflowX="hidden"
+          overflowY="auto"
+        >
+          <TenantHeader data-test-id="header" marginBottom={4} tenant={tenant} />
+          <Box flex={1}>
+            {highlight && (
+              <Box
+                backgroundColor="primary.50"
+                color="primary.500"
+                fontWeight="500"
+                marginTop={4}
+                paddingX={4}
+                paddingY={3}
+                rounded={{sm: 0, xl: "lg"}}
+                textAlign={{base: "left", xl: "center"}}
               >
-                <TenantAvatar
-                  gridArea="avatar"
-                  logo={logo}
-                  marginRight={{base: 0, sm: 4}}
-                  title={title}
-                />
-                <Stack gridArea="information" marginTop={{base: 0, sm: 4}}>
-                  <Heading
-                    as="h1"
-                    fontSize={{base: "2xl", sm: "3xl"}}
-                    fontWeight="bold"
-                    style={{margin: 0}}
-                  >
-                    {title}
-                  </Heading>
-                  <Text color="gray.500">{description}</Text>
-                </Stack>
-                <Stack
-                  isInline
-                  gridArea="links"
-                  justifyContent="flex-end"
-                  marginTop={4}
-                  spacing={4}
-                >
-                  <Link isExternal href={`tel:${phone}`}>
-                    <IconButton
-                      aria-label="phone"
-                      icon="phone"
-                      rounded="50%"
-                      variantColor="primary"
-                    />
-                  </Link>
-                </Stack>
-              </Grid>
-            </Box>
-            <Box marginBottom={4}>{filters}</Box>
-            {Boolean(featuredProducts.length) && (
-              <Box marginBottom={4}>
-                <Heading as="h2" fontSize={{base: "2xl", sm: "3xl"}} marginBottom={4}>
-                  Destacados
-                </Heading>
-                <ProductsGrid>
-                  {featuredProducts.map((product) => (
-                    <ProductCard key={product.id} add={add} product={product} remove={remove} />
-                  ))}
-                </ProductsGrid>
+                {highlight}
               </Box>
             )}
-            {Boolean(products.length) ? (
-              productsByCategory.map(([category, products]) => {
-                const productsBySubcategory = Object.entries(
-                  groupBy(products, (product) => product.subcategory),
-                );
-
-                return (
-                  <PseudoBox key={category} marginBottom={4}>
-                    <Flex direction="column">
-                      <Heading as="h2" fontSize={{base: "2xl", sm: "3xl"}}>
-                        {category}
-                      </Heading>
-                      {productsBySubcategory.map(([subcategory, products]) => (
-                        <PseudoBox key={subcategory} mt={4}>
-                          <Flex direction="column">
-                            {subcategory && (
-                              <Heading
-                                as="h3"
-                                fontSize={{base: "xl", sm: "2xl"}}
-                                fontWeight={500}
-                                marginBottom={4}
-                              >
-                                {subcategory}
-                              </Heading>
-                            )}
-                            <ProductsGrid>
-                              {products.map((product) => (
-                                <ProductCard
-                                  key={product.id}
-                                  add={add}
-                                  product={product}
-                                  remove={remove}
-                                />
-                              ))}
-                            </ProductsGrid>
-                          </Flex>
+            <Box marginBottom={{base: 5, sm: 10}}>
+              <Flex
+                borderBottomWidth={1}
+                borderColor="gray.200"
+                borderTopWidth={1}
+                data-test-id="filters"
+              >
+                <Content paddingX={4} paddingY={1}>
+                  {filters}
+                </Content>
+              </Flex>
+            </Box>
+            <Content paddingX={4}>
+              <Stack margin="auto" spacing={5} width="100%">
+                {Boolean(products.length) ? (
+                  <Stack spacing={{base: 5, sm: 10}} width="100%">
+                    {Boolean(featuredProducts.length) && (
+                      <ProductsCarousel title={t("common.featured")} zIndex={0}>
+                        {featuredProducts.map((product) => (
+                          <ProductCard
+                            key={product.id}
+                            isRaised
+                            add={add}
+                            minWidth={280}
+                            product={product}
+                            remove={remove}
+                          />
+                        ))}
+                      </ProductsCarousel>
+                    )}
+                    {productsByCategory.map(([category, products]) => {
+                      return (
+                        <PseudoBox
+                          key={category}
+                          _last={{marginBottom: 4}}
+                          as="section"
+                          id={category}
+                        >
+                          <ProductsGrid data-test-id="category" title={category}>
+                            {products.map((product) => (
+                              <ProductCard
+                                key={product.id}
+                                add={add}
+                                product={product}
+                                remove={remove}
+                              />
+                            ))}
+                          </ProductsGrid>
                         </PseudoBox>
-                      ))}
-                    </Flex>
-                  </PseudoBox>
-                );
-              })
-            ) : (
-              <Flex
-                alignItems="center"
-                data-test-id="empty"
-                direction="column"
-                flex={1}
-                justifyContent="center"
-                marginBottom={4}
-              >
-                <Icon color="gray.200" marginBottom={4} name="search" size="128px" />
-                <Text color="gray.500" fontSize="lg" textAlign="center">
-                  No se encontraron productos
-                </Text>
-              </Flex>
-            )}
-            {Boolean(count) && (
-              <Flex
-                bottom={0}
-                justifyContent="center"
-                padding={4}
-                paddingTop={0}
-                position="sticky"
-                zIndex={2}
-              >
-                <Flex
-                  alignItems="center"
-                  boxShadow="0 0 6px currentColor"
-                  color="primary.500"
-                  display="block"
-                  justifyContent="center"
-                  margin={{base: 0, sm: "auto"}}
-                  rounded={4}
-                  width={{base: "100%", sm: "auto"}}
-                >
-                  <Button
-                    backgroundColor="primary.500"
-                    color="white"
-                    display="flex"
-                    justifyContent="space-between"
-                    variantColor="primary"
-                    width="100%"
-                    onClick={openCart}
+                      );
+                    })}
+                  </Stack>
+                ) : (
+                  <NoResults data-test-id="empty" marginTop={12} style={{marginBottom: 12}}>
+                    {t("products.empty")}
+                  </NoResults>
+                )}
+                {Boolean(items.length) && (
+                  <Flex
+                    as="nav"
+                    bottom={0}
+                    justifyContent="center"
+                    margin={{base: 0, sm: "auto"}}
+                    paddingBottom={4}
+                    position="sticky"
+                    zIndex={2}
                   >
-                    <Stack isInline alignItems="center" flex={1} spacing={4}>
-                      <Badge
-                        backgroundColor="primary.700"
-                        color="primary.50"
-                        fontSize="sm"
-                        paddingX={2}
-                        paddingY={1}
-                        variantColor="primary"
-                      >
-                        {count}
-                      </Badge>
-                      <Text flex={1}>Revisar pedido</Text>
-                      <Text>${total}</Text>
-                    </Stack>
-                  </Button>
-                </Flex>
-              </Flex>
-            )}
+                    <CartTotalButton items={items} onClick={openCart} />
+                  </Flex>
+                )}
+              </Stack>
+            </Content>
           </Box>
         </Flex>
       </Flex>
-      <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
+      <CartDrawer
+        isOpen={isCartOpen}
+        items={items}
+        onCheckout={checkout}
+        onClose={closeCart}
+        onRemove={remove}
+      />
     </>
   );
 };

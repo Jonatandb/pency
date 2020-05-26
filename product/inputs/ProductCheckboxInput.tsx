@@ -1,5 +1,5 @@
 import React from "react";
-import {SimpleGrid, Text, Stack, Button} from "@chakra-ui/core";
+import {Text, Stack, Button} from "@chakra-ui/core";
 import produce from "immer";
 
 import {MultipleOptionItem} from "../types/options";
@@ -11,7 +11,7 @@ interface Props {
   label?: (value: MultipleOptionItem) => string;
   valueProp?: string;
   value?: MultipleOptionItem[];
-  limit?: number;
+  limit: number;
   onChange: (value: Props["value"]) => void;
 }
 
@@ -24,7 +24,7 @@ const ProductLimitedCheckboxInput: React.FC<Props> = ({
   value = [],
   ...props
 }) => {
-  const isFull = value?.length >= limit;
+  const isFull = limit ? value?.length >= limit : false;
 
   function handleDecrease(option) {
     const index = value.findIndex((selected) => selected[valueProp] === option[valueProp]);
@@ -41,7 +41,7 @@ const ProductLimitedCheckboxInput: React.FC<Props> = ({
   }
 
   return (
-    <SimpleGrid spacing={3} width="100%" {...props}>
+    <Stack shouldWrapChildren spacing={3} width="100%" {...props}>
       {options.map((option) => {
         const count = value?.filter((selected) => selected[valueProp] === option[valueProp]).length;
         const isDisabled = isFull && !count;
@@ -68,7 +68,7 @@ const ProductLimitedCheckboxInput: React.FC<Props> = ({
           </Checkbox>
         );
       })}
-    </SimpleGrid>
+    </Stack>
   );
 };
 

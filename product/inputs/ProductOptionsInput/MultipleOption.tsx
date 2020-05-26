@@ -1,5 +1,5 @@
 import React from "react";
-import {Stack, Input, Button, IconButton, FormLabel} from "@chakra-ui/core";
+import {Stack, Input, Button, IconButton, FormLabel, FormHelperText} from "@chakra-ui/core";
 import produce from "immer";
 
 import {MultipleOption} from "../../types/options";
@@ -7,6 +7,7 @@ import {MultipleOption} from "../../types/options";
 import {DEFAULT_OPTION} from "./constants";
 
 import FormControl from "~/ui/controls/FormControl";
+import SwitchInput from "~/ui/inputs/Switch";
 interface Props {
   index: number;
   error?: string;
@@ -15,6 +16,8 @@ interface Props {
 }
 
 const MultipleOptionInput: React.FC<Props> = ({error, value, onChange}) => {
+  const [hasLimit, toggleLimit] = React.useState(Boolean(value.count));
+
   function handleChange(subindex, prop, newValue) {
     onChange(
       produce(value, (value) => {
@@ -55,8 +58,37 @@ const MultipleOptionInput: React.FC<Props> = ({error, value, onChange}) => {
     );
   }
 
+  function handleToggleLimit(enabled: boolean) {
+    toggleLimit(enabled);
+
+    onChange(
+      produce(value, (value) => {
+        value.count = enabled ? 2 : 0;
+      }),
+    );
+  }
+
   return (
     <Stack spacing={3}>
+      <FormControl
+        error={
+          error === "optionsCount" &&
+          value.count > value.options?.length &&
+          "No puede haber menos opción que selecciones"
+        }
+        help="Cantidad de opciónes que el usuario puede seleccionar"
+        label="Límite"
+      >
+        <SwitchInput checked={hasLimit} onChange={handleToggleLimit} />
+        {hasLimit && (
+          <Input
+            placeholder="2"
+            type="number"
+            value={value.count || ""}
+            onChange={handleChangeCount}
+          />
+        )}
+      </FormControl>
       <FormControl
         isRequired
         error={error === "title" && !value.title && "Este campo es requerido"}
@@ -70,66 +102,57 @@ const MultipleOptionInput: React.FC<Props> = ({error, value, onChange}) => {
           onChange={handleChangeTitle}
         />
       </FormControl>
-      <FormControl
-        isRequired
-        error={
-          (error === "optionsCount" &&
-            value.count > value.options?.length &&
-            "No puede haber menos opción que selecciones") ||
-          (error === "count" && !value.count && "Este campo es requerido")
-        }
-        help="Cantidad de opciónes que el usuario puede seleccionar"
-        label="Cantidad"
-      >
-        <Input
-          placeholder="2"
-          type="number"
-          value={value.count || ""}
-          onChange={handleChangeCount}
-        />
-      </FormControl>
-      {value.options.length && <FormLabel marginBottom={0}>Sub opciones</FormLabel>}
-      {value.options.map((option, subindex) => (
-        <Stack key={option.id} isInline spacing={1}>
-          <FormControl
-            error={error === "optionsTitle" && !option.title && "Este campo es requerido"}
-            width="100%"
-          >
-            <Input
-              autoFocus
-              placeholder="Título"
-              value={option.title}
-              onChange={(event) => handleChange(subindex, "title", event.target.value)}
-            />
-          </FormControl>
-          <FormControl
-            error={error === "optionsPrice" && !option.price && "Este campo es requerido"}
-            width="100%"
-          >
-            <Input
-              placeholder="Precio"
-              type="number"
-              value={option.price}
-              onChange={(event) =>
-                handleChange(
-                  subindex,
-                  "price",
-                  event.target.value ? Number(event.target.value) : "",
-                )
-              }
-            />
-          </FormControl>
-          {value.options.length > value.count && (
-            <IconButton
-              aria-label="Borrar sub opción"
-              icon="delete"
-              variant="ghost"
-              variantColor="red"
-              onClick={() => handleRemove(subindex)}
-            />
-          )}
+      <Stack spacing={0}>
+        {value.options.length && <FormLabel marginBottom={0}>Sub opciones</FormLabel>}
+        <Stack spacing={2}>
+          {value.options.map((option, subindex) => (
+            <Stack key={option.id} isInline spacing={2}>
+              <FormControl
+                error={error === "optionsTitle" && !option.title && "Este campo es requerido"}
+                width="100%"
+              >
+                <Input
+                  autoFocus
+                  placeholder="Título"
+                  value={option.title}
+                  onChange={(event) => handleChange(subindex, "title", event.target.value)}
+                />
+              </FormControl>
+              <FormControl
+                error={error === "optionsPrice" && !option.price && "Este campo es requerido"}
+                flexShrink={2}
+                width="100%"
+              >
+                <Input
+                  placeholder="Precio"
+                  type="number"
+                  value={option.price}
+                  onChange={(event) =>
+                    handleChange(
+                      subindex,
+                      "price",
+                      event.target.value ? Number(event.target.value) : "",
+                    )
+                  }
+                />
+              </FormControl>
+              {value.options.length > value.count && (
+                <IconButton
+                  aria-label="Borrar sub opción"
+                  icon="delete"
+                  variant="ghost"
+                  variantColor="red"
+                  onClick={() => handleRemove(subindex)}
+                />
+              )}
+            </Stack>
+          ))}
         </Stack>
-      ))}
+        <FormHelperText>
+          El precio indicado se sumará al valor base del producto, si la opción no modifica el
+          precio, dejá 0.
+        </FormHelperText>
+      </Stack>
       <Button size="sm" variant="ghost" variantColor="primary" onClick={handleAdd}>
         Agregar sub opción
       </Button>

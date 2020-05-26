@@ -16,9 +16,8 @@ const TenantAvatar: React.FC<Props> = ({logo, title, ...props}) => {
       backgroundPosition="center"
       backgroundRepeat="no-repeat"
       backgroundSize="contain"
-      border="4px solid white"
+      boxShadow="inset 0 0 1px rgba(0,0,0,0.4)"
       height={{base: 24, sm: 32}}
-      marginTop={{base: -6, sm: -8}}
       minHeight={{base: 24, sm: 32}}
       minWidth={{base: 24, sm: 32}}
       rounded="50%"
@@ -27,9 +26,8 @@ const TenantAvatar: React.FC<Props> = ({logo, title, ...props}) => {
     />
   ) : (
     <Avatar
-      border="4px solid white"
+      boxShadow="inset 0 0 1px rgba(0,0,0,0.3)"
       height={{base: 24, sm: 32}}
-      marginTop={{base: -6, sm: -8}}
       minHeight={{base: 24, sm: 32}}
       minWidth={{base: 24, sm: 32}}
       name={title}

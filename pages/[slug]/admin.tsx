@@ -1,43 +1,32 @@
 import React from "react";
-import {Box, Tabs, TabList, Tab, TabPanels, TabPanel, Heading} from "@chakra-ui/core";
 
 import {Provider as SessionProvider} from "~/session/context";
-import ProductsAdminScreen from "~/product/screens/Admin";
-import TenantAdminScreen from "~/tenant/screens/Admin";
 import fetch from "~/utils/fetch";
 import {Tenant} from "~/tenant/types";
-import Head from "~/app/components/Head";
-
+import {Product} from "~/product/types";
+import AdminScreen from "~/app/screens/Admin";
+import AdminLayout from "~/app/layouts/AdminLayout";
+import {Provider as I18nProvider} from "~/i18n/context";
+import {Provider as ProductProvider} from "~/product/context";
+import {Provider as TenantProvider} from "~/tenant/context";
 interface Props {
   tenant: Tenant;
+  products: Product[];
 }
 
-const AdminScreen: React.FC<Props> = ({tenant}) => {
+const AdminRoute: React.FC<Props> = ({tenant, products}) => {
   return (
-    <>
-      <Head tenant={tenant} />
-      <SessionProvider>
-        <Box as="main" height="100%" overflowY="auto" padding={4}>
-          <Heading as="h1" mb={4} size="2xl">
-            Panel de administración
-          </Heading>
-          <Tabs variant="soft-rounded" variantColor="primary">
-            <TabList mb={4}>
-              <Tab>Productos</Tab>
-              <Tab>Tienda</Tab>
-            </TabList>
-            <TabPanels>
-              <TabPanel>
-                <ProductsAdminScreen />
-              </TabPanel>
-              <TabPanel>
-                <TenantAdminScreen />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </Box>
-      </SessionProvider>
-    </>
+    <TenantProvider initialValue={tenant}>
+      <ProductProvider initialValues={products}>
+        <AdminLayout>
+          <I18nProvider>
+            <SessionProvider>
+              <AdminScreen tenant={tenant} />
+            </SessionProvider>
+          </I18nProvider>
+        </AdminLayout>
+      </ProductProvider>
+    </TenantProvider>
   );
 };
 
@@ -60,4 +49,4 @@ export async function getServerSideProps({
   }
 }
 
-export default AdminScreen;
+export default AdminRoute;
