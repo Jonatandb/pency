@@ -1,15 +1,11 @@
-import {Product} from "../product/types";
+import {Product, Variant} from "~/product/types";
+import {Field} from "~/tenant/types";
 
 export interface CartItem {
   id: string | Product["id"];
-  product: Product["id"];
+  product: Product;
+  variants: Variant[];
   count: number;
-  category: Product["category"];
-  subcategory: Product["subcategory"];
-  price: Product["price"];
-  title: Product["title"];
-  description: Product["description"];
-  options?: string;
 }
 
 export type Cart = Record<string, CartItem>;
@@ -20,9 +16,11 @@ export interface State {
 }
 
 export interface Actions {
-  add: (product: Product) => void;
+  add: (product: Product, variants: Variant[], count: number) => void;
+  increase: (id: CartItem["id"]) => void;
+  decrease: (id: CartItem["id"]) => void;
   remove: (id: CartItem["id"]) => void;
-  checkout: () => void;
+  checkout: (fields?: Field[]) => Promise<void>;
 }
 
 export interface Context {

@@ -1,5 +1,9 @@
 node_modules/
 coverage/
+build/
 .idea/
 .vscode/
-build/
+.next/
+.now
+.log
+next.config.js

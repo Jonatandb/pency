@@ -1,11 +1,12 @@
 import React from "react";
-import {Button, Stack, Text, FormErrorMessage, FormControl, Input, Box} from "@chakra-ui/core";
+import {Button, Stack, Text, FormErrorMessage, FormControl, Box} from "@chakra-ui/core";
 import {useForm} from "react-hook-form";
 
-import api from "../../../api";
+import api from "../../../api/client";
 
+import Input from "~/ui/inputs/Input";
 import {useToast} from "~/hooks/toast";
-import {useTranslation} from "~/hooks/translation";
+import {useTranslation} from "~/i18n/hooks";
 
 interface FormData {
   email: string;
@@ -62,7 +63,6 @@ const ResetPasswordForm: React.FC<Props> = ({onBack, onSuccess}) => {
               },
             })}
             autoFocus
-            focusBorderColor="primary.300"
             fontSize="md"
             name="email"
             placeholder="pency@gmail.com"
