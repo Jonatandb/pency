@@ -2,7 +2,7 @@ import React from "react";
 import Head from "next/head";
 import {Global, css} from "@emotion/core";
 
-import {META} from "../constants";
+import {META} from "../constants/config";
 
 import {ClientTenant} from "~/tenant/types";
 import {Product} from "~/product/types";
@@ -22,13 +22,6 @@ const StoreLayout: React.FC<Props> = ({tenant, product, children}) => (
           height: 100%;
           width: 100%;
           max-width: 100vw;
-          overscroll-behavior: contain;
-          overflow: hidden;
-          position: fixed;
-        }
-
-        #__next {
-          height: 100%;
         }
 
         * {
@@ -37,16 +30,12 @@ const StoreLayout: React.FC<Props> = ({tenant, product, children}) => (
           font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
             "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
         }
-
-        #drawer-cart,
-        #drawer-cart-item {
-          height: 100% !important;
-        }
       `}
     />
     <Head>
       <link href={META.favicon} rel="icon" />
       <link href={tenant.logo || META.appleicon} rel="apple-touch-icon" />
+      <link href={`${META.url}/${tenant.slug}`} rel="canonical" />
       <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap"
         rel="stylesheet"
@@ -61,6 +50,44 @@ const StoreLayout: React.FC<Props> = ({tenant, product, children}) => (
       <meta content="summary_large_image" name="twitter:card" />
       <meta content={tenant.twitter ? `@${tenant.twitter}` : META.twitter} name="twitter:creator" />
       <meta content={META.twitter} name="twitter:site" />
+      {tenant.ga && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${tenant.ga}`} />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '${tenant.ga}');`,
+            }}
+          />
+        </>
+      )}
+      {tenant.pixel && (
+        <>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `!function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '${tenant.pixel}');
+      fbq('track', 'PageView');`,
+            }}
+          />
+          <noscript
+            dangerouslySetInnerHTML={{
+              __html: `<img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=${tenant.pixel}&ev=PageView&noscript=1" />`,
+            }}
+          />
+        </>
+      )}
       {product ? (
         <>
           <meta content={product.title} name="twitter:title" />
@@ -75,9 +102,9 @@ const StoreLayout: React.FC<Props> = ({tenant, product, children}) => (
           <meta content={product.image} property="og:image:url" />
           <meta content="image/jpeg" property="og:image:type" />
           <meta content={product.title} property="og:image:alt" />
-          <meta content={String(product.price)} property="og:price:amount" />
+          <meta content={product.price.toFixed(2)} property="og:price:amount" />
           <meta content={CURRENCIES[tenant.country]} property="og:price:currency" />
-          <meta content={String(product.price)} property="product:price:amount" />
+          <meta content={product.price.toFixed(2)} property="product:price:amount" />
           <meta content={CURRENCIES[tenant.country]} property="product:price:currency" />
           <meta content={product.category} property="article:section" />
           <meta content={product.title} itemProp="name" />
@@ -114,7 +141,7 @@ const StoreLayout: React.FC<Props> = ({tenant, product, children}) => (
           <meta content={tenant.title || META.title} property="og:image:alt" />
         </>
       )}
-      <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+      <meta content="width=device-width, initial-scale=1.0, viewport-fit=contain" name="viewport" />
     </Head>
     {children}
   </>

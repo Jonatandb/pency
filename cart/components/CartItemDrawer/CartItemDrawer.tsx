@@ -15,24 +15,30 @@ import {useTranslation} from "~/i18n/hooks";
 import {useToast} from "~/hooks/toast";
 import ShareIcon from "~/ui/icons/Share";
 import {useAnalytics} from "~/analytics/hooks";
+import Textarea from "~/ui/inputs/Textarea";
+import FormControl from "~/ui/form/FormControl";
+import {useTenant} from "~/tenant/hooks";
+import Button from "~/ui/controls/Button";
 
 interface Props extends Omit<IDrawer, "children"> {
-  onSubmit: (product: Product, options: Variant[], count: number) => void;
+  onSubmit: (product: Product, options: Variant[], count: number, note: string) => void;
   product: Product;
 }
 
 const CartItemDrawer: React.FC<Props> = ({onClose, product, onSubmit, ...props}) => {
   const [count, setCount] = React.useState(1);
+  const [note, setNote] = React.useState("");
   const t = useTranslation();
   const log = useAnalytics();
   const toast = useToast();
+  const {flags} = useTenant();
   const canShare = {
     prompt: Boolean(navigator?.share),
     clipboard: Boolean(navigator?.clipboard),
   };
 
   function handleSubmit(options: Variant[]) {
-    onSubmit(product, options, count);
+    onSubmit(product, options, count, note);
   }
 
   function handleShare() {
@@ -45,9 +51,9 @@ const CartItemDrawer: React.FC<Props> = ({onClose, product, onSubmit, ...props})
         })
         .then(() => {
           toast({
-            status: "success",
-            title: "Bien!",
-            description: "El enlace fue compartido correctamente",
+            status: t("cartItemDrawer.share.prompt.status"),
+            title: t("cartItemDrawer.share.prompt.title"),
+            description: t("cartItemDrawer.share.prompt.description"),
           });
 
           log.share(product, "mobile");
@@ -60,21 +66,25 @@ const CartItemDrawer: React.FC<Props> = ({onClose, product, onSubmit, ...props})
         .writeText(window.location.href)
         .then(() => {
           toast({
-            status: "success",
-            title: "Link copiado",
-            description: "El link se copió al portapapeles",
+            status: t("cartItemDrawer.share.clipboard.status"),
+            title: t("cartItemDrawer.share.clipboard.title"),
+            description: t("cartItemDrawer.share.clipboard.description"),
           });
 
           log.share(product, "desktop");
         })
         .catch(() => {
           toast({
-            status: "warning",
-            title: "No se pudo copiar el link",
-            description: "No se tienen permisos para acceder al portapapeles en este navegador",
+            status: t("cartItemDrawer.share.clipboard.error.status"),
+            title: t("cartItemDrawer.share.clipboard.error.title"),
+            description: t("cartItemDrawer.share.clipboard.error.description"),
           });
         });
     }
+  }
+
+  function handleNoteChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setNote(event.target.value);
   }
 
   React.useLayoutEffect(() => {
@@ -83,15 +93,31 @@ const CartItemDrawer: React.FC<Props> = ({onClose, product, onSubmit, ...props})
     }
   }, [product, log]);
 
+  // If we get here by any point, return null
+  if (product.type === "hidden") return null;
+
   return (
     <Drawer id="cart-item" placement="right" size="md" onClose={onClose} {...props}>
-      <ProductVariantForm defaultValues={product.options} onSubmit={handleSubmit}>
+      <ProductVariantForm
+        defaultValues={product.options}
+        type={product.type}
+        onSubmit={handleSubmit}
+      >
         {({form, submit, isLoading, watch}) => {
           const variants = Object.values(watch());
+          const items = [
+            {
+              id: "temp",
+              note: "",
+              product,
+              variants,
+              count,
+            },
+          ];
 
           return (
             <>
-              <DrawerBody paddingX={0} position="relative">
+              <DrawerBody paddingX={0}>
                 <ArrowLeftIcon
                   background="white"
                   boxShadow="md"
@@ -131,39 +157,75 @@ const CartItemDrawer: React.FC<Props> = ({onClose, product, onSubmit, ...props})
                   spacing={6}
                 >
                   <Stack spacing={2}>
-                    <Text fontSize="2xl" fontWeight="bold" lineHeight="normal">
+                    <Text
+                      fontSize="2xl"
+                      fontWeight="bold"
+                      lineHeight="normal"
+                      overflowWrap="break-word"
+                    >
                       {product.title}
                     </Text>
-                    <TruncatedText color="gray.500" fontSize="md" limit={280} whiteSpace="pre-line">
-                      {product.description}
-                    </TruncatedText>
+                    {product.description && (
+                      <TruncatedText
+                        color="gray.500"
+                        fontSize="md"
+                        limit={280}
+                        whiteSpace="pre-line"
+                      >
+                        {product.description}
+                      </TruncatedText>
+                    )}
                   </Stack>
-                  {form}
+                  {product.options?.length ? form : null}
                   <Flex alignItems="center" justifyContent="space-between">
-                    <FormLabel>{t("common.count")}</FormLabel>
+                    <FormLabel padding={0}>{t("common.count")}</FormLabel>
                     <Stepper min={1} value={count} onChange={setCount} />
                   </Flex>
+                  {flags.includes("note") && (
+                    <FormControl
+                      help={t("cartItemDrawer.comments.placeholder")}
+                      label={t("cartItemDrawer.comments.label")}
+                    >
+                      <Textarea
+                        max={140}
+                        placeholder={t("cartItemDrawer.comments.placeholder")}
+                        value={note}
+                        onChange={handleNoteChange}
+                      />
+                    </FormControl>
+                  )}
                 </Stack>
               </DrawerBody>
               <DrawerFooter>
-                <SummaryButton
-                  isLoading={isLoading}
-                  items={[
-                    {
-                      id: "temp",
-                      product,
-                      variants,
-                      count,
-                    },
-                  ]}
-                  onClick={(event) => {
-                    event.stopPropagation();
+                {["unavailable", "available", "promotional", "variant"].includes(product.type) && (
+                  <SummaryButton
+                    isDisabled={product.type === "unavailable"}
+                    isLoading={isLoading}
+                    items={items}
+                    onClick={(event) => {
+                      event.stopPropagation();
 
-                    submit();
-                  }}
-                >
-                  {t("common.add")}
-                </SummaryButton>
+                      submit();
+                    }}
+                  >
+                    {t("common.add")}
+                  </SummaryButton>
+                )}
+                {product.type === "ask" && (
+                  <Button
+                    boxShadow="lg"
+                    size="lg"
+                    variantColor="primary"
+                    width="100%"
+                    onClick={(event) => {
+                      event.stopPropagation();
+
+                      submit();
+                    }}
+                  >
+                    {t("common.add")}
+                  </Button>
+                )}
               </DrawerFooter>
             </>
           );

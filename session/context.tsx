@@ -48,16 +48,22 @@ const SessionProvider: React.FC = ({children}) => {
       api.onChange((user) => {
         if (user) {
           if (user.uid === id) {
-            setUser(user);
+            user.getIdToken().then((token) => {
+              window.localStorage.setItem("token", token);
 
-            toast({
-              title: "Inicio de sesión correcto",
-              description: `Hola ${user.email}! 👋`,
-              status: "success",
+              setUser(user);
+
+              toast({
+                title: "Inicio de sesión correcto",
+                description: `Hola ${user.email}! 👋`,
+                status: "success",
+              });
+
+              toggleRestoring(false);
             });
-
-            return toggleRestoring(false);
           } else {
+            window.localStorage.removeItem("token");
+
             api.signOut();
 
             toast({
@@ -69,6 +75,8 @@ const SessionProvider: React.FC = ({children}) => {
             return toggleRestoring(false);
           }
         } else {
+          window.localStorage.removeItem("token");
+
           setUser(user);
 
           return toggleRestoring(false);
@@ -77,15 +85,7 @@ const SessionProvider: React.FC = ({children}) => {
     [toast, id],
   );
 
-  React.useEffect(() => {
-    if (user) {
-      user.getIdToken().then((token) => localStorage.setItem("token", token));
-    } else {
-      localStorage.removeItem("token");
-    }
-  }, [user]);
-
-  if (isRestoring) return <LoadingScreen />;
+  if (isRestoring) return <LoadingScreen color="primary" />;
   if (!user) return <AuthScreen tenant={tenant} />;
 
   return <SessionContext.Provider value={{state, actions}}>{children}</SessionContext.Provider>;

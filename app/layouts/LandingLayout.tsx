@@ -2,7 +2,7 @@ import React from "react";
 import Head from "next/head";
 import {Global, css} from "@emotion/core";
 
-import {META} from "../constants";
+import {META} from "../constants/config";
 
 const LandingLayout: React.FC = ({children}) => (
   <>
@@ -18,6 +18,7 @@ const LandingLayout: React.FC = ({children}) => (
     <Head>
       <link href={META.favicon} rel="icon" />
       <link href={META.appleicon} rel="apple-touch-icon" />
+      <link href={META.url} rel="canonical" />
       <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap"
         rel="stylesheet"

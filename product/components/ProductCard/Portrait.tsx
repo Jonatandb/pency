@@ -1,33 +1,37 @@
 import React from "react";
-import {Box, Text, Flex, FlexProps} from "@chakra-ui/core";
+import {Box, Text, Flex, Stack, FlexProps} from "@chakra-ui/core";
 
 import Image from "~/ui/feedback/Image";
 import {Product} from "~/product/types";
 import {usePrice} from "~/i18n/hooks";
+import {getVariantsPriceRange} from "~/product/selectors";
 
 interface Props extends Omit<FlexProps, "onClick"> {
   product: Product;
-  onClick: (product: Product) => void;
+  onClick?: (product: Product) => void;
   isRaised?: boolean;
 }
 
 const PortraitProductCard: React.FC<Props> = ({isRaised = false, product, onClick, ...props}) => {
   const p = usePrice();
-  const {image, title, price, available} = product;
+  const {image, title, price, originalPrice, type} = product;
+  const [min, max] = getVariantsPriceRange(product.options);
 
   function handleClick() {
-    available && onClick(product);
+    onClick && onClick(product);
   }
+
+  // If we get here by any point, return null
+  if (type === "hidden") return null;
 
   return (
     <Flex
       alignItems="flex-end"
       boxShadow={isRaised ? "lg" : "none"}
-      cursor={available ? "pointer" : "not-allowed"}
+      cursor={onClick ? "pointer" : "inherit"}
       data-test-id="product"
       direction="column"
       justifyContent="space-between"
-      opacity={available ? 1 : 0.5}
       position="relative"
       rounded="md"
       transition="transform 0.2s"
@@ -35,6 +39,7 @@ const PortraitProductCard: React.FC<Props> = ({isRaised = false, product, onClic
       {...props}
     >
       <Image
+        fadeIn
         height={{base: 48, sm: 64}}
         rounded="md"
         src={image || "/assets/fallback.jpg"}
@@ -50,20 +55,50 @@ const PortraitProductCard: React.FC<Props> = ({isRaised = false, product, onClic
         paddingTop={2}
         width="100%"
       >
-        <Text display="block" fontSize="md" fontWeight={500} lineHeight="normal" marginBottom={2}>
+        <Text
+          display="block"
+          fontSize="md"
+          fontWeight={500}
+          lineHeight="normal"
+          marginBottom={2}
+          overflowWrap="break-word"
+        >
           {title}
         </Text>
-        <Flex alignItems="center">
-          <Text
-            color={available ? "green.500" : "yellow.500"}
-            flex={1}
-            fontSize={{base: "sm", sm: "md"}}
-            fontWeight={500}
-            lineHeight={1}
-          >
-            {available ? p(price) : `Sin stock`}
+        {type === "available" && (
+          <Stack isInline alignItems="center">
+            <Text color="green.500" fontSize="sm" fontWeight={500} lineHeight={1}>
+              {p(price)}
+            </Text>
+          </Stack>
+        )}
+        {type === "promotional" && (
+          <Stack isInline alignItems="center">
+            <Text color="green.500" fontSize="sm" fontWeight={500} lineHeight={1}>
+              {p(price)}
+            </Text>
+            {originalPrice && (
+              <Text color="gray.500" fontSize="sm" lineHeight={1} textDecoration="line-through">
+                {p(originalPrice)}
+              </Text>
+            )}
+          </Stack>
+        )}
+        {type === "unavailable" && (
+          <Text color="yellow.500" fontSize="sm" fontWeight={500} lineHeight={1}>
+            Sin stock
           </Text>
-        </Flex>
+        )}
+        {type === "variant" && (
+          <Text color="green.500" fontSize="sm" fontWeight={500} lineHeight={1}>
+            {min === max ? p(min) : p(min)} ~ {p(max)}
+          </Text>
+        )}
+        {type === "ask" && (
+          <Text color="green.500" fontSize="sm" fontWeight={500} lineHeight={1}>
+            A consultar
+          </Text>
+        )}
       </Box>
     </Flex>
   );

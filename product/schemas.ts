@@ -1,57 +1,228 @@
 import * as yup from "yup";
 
 import {Product, Variant, Option} from "./types";
-
-interface Bulk {
-  options: Pick<Variant, "options">[];
-  price: Product["price"];
-}
+import {DEFAULT_PRODUCT, DEFAULT_PRODUCT_OPTION, DEFAULT_PRODUCT_VARIANT} from "./constants";
 
 export default {
-  fetch: yup.object<Product>({
-    id: yup.string().required(),
-    available: yup.boolean().default(false),
-    title: yup.string().required().default(""),
-    price: yup.number().required().default(0),
-    options: yup
-      .array(
-        yup.object<Variant>({
-          id: yup.string().required(),
-          title: yup.string().required("El título de las variantes es requerido"),
-          value: yup.array<Option>().nullable(),
-          required: yup.boolean(),
-          count: yup.number(),
-          options: yup
-            .array(
-              yup.object<Option>({
-                price: yup.number().required("El precio de las opciones de variantes es requerido"),
-                id: yup.string().required("El id de opciones de variantes es requerido"),
-                title: yup.string().required("El titulo de las opciones de variantes es requerido"),
-              }),
-            )
-            .default([]),
-        }),
-      )
-      .default([]),
-    category: yup.string().default(""),
-    description: yup.string().default(""),
-    featured: yup.boolean().default(false),
-    image: yup.string().default(""),
-  }),
-  bulk: yup.object<Bulk>({
-    price: yup.number().required("El precio es requerido"),
-    options: yup
-      .array(
-        yup.object({
-          options: yup.array(
-            yup.object<Option>({
-              price: yup.number().required("El precio de las opciones de variantes es requerido"),
-              id: yup.string().required("El id de opciones de variantes es requerido"),
-              title: yup.string().required("El titulo de las opciones de variantes es requerido"),
-            }),
-          ),
-        }),
-      )
-      .default([]),
-  }),
+  server: {
+    create: yup.object<Product>({
+      id: yup.string().strip(true),
+      createdAt: yup.number().default(DEFAULT_PRODUCT.createdAt),
+      updatedAt: yup.number().default(DEFAULT_PRODUCT.updatedAt),
+      type: yup
+        .string()
+        .oneOf(["available", "unavailable", "ask", "promotional", "variant", "hidden"])
+        .default(DEFAULT_PRODUCT.type),
+      title: yup.string().default(DEFAULT_PRODUCT.title),
+      price: yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value))
+        .default(DEFAULT_PRODUCT.price),
+      originalPrice: yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value))
+        .default(DEFAULT_PRODUCT.originalPrice),
+      options: yup
+        .array(
+          yup.object<Variant>({
+            id: yup.string().required(),
+            title: yup.string().default(DEFAULT_PRODUCT_VARIANT.title),
+            value: yup.array<Option>().strip(true),
+            required: yup.boolean().default(DEFAULT_PRODUCT_VARIANT.required),
+            count: yup.number().default(DEFAULT_PRODUCT_VARIANT.count),
+            options: yup
+              .array(
+                yup.object<Option>({
+                  price: yup
+                    .number()
+                    .transform((value) => (isNaN(value) ? undefined : value))
+                    .default(DEFAULT_PRODUCT_OPTION.price),
+                  id: yup.string().required(),
+                  title: yup.string().default(DEFAULT_PRODUCT_OPTION.title),
+                }),
+              )
+              .default([]),
+          }),
+        )
+        .default([]),
+      category: yup.string().default(DEFAULT_PRODUCT.category).trim(),
+      description: yup.string().default(DEFAULT_PRODUCT.description),
+      featured: yup.boolean().default(DEFAULT_PRODUCT.featured),
+      image: yup.string().default(DEFAULT_PRODUCT.image),
+    }),
+    update: yup.object<Partial<Product>>({
+      id: yup.string().required(),
+      title: yup.string().nullable(),
+      category: yup.string().trim().nullable(),
+      description: yup.string().nullable(),
+      createdAt: yup.number().nullable().strip(true),
+      updatedAt: yup.number().nullable().strip(true),
+      price: yup.number().nullable(),
+      originalPrice: yup.number().nullable(),
+      type: yup
+        .string()
+        .oneOf(["available", "unavailable", "ask", "promotional", "variant", "hidden"])
+        .nullable(),
+      featured: yup.boolean().nullable(),
+      options: yup
+        .array(
+          yup.object<Variant>({
+            id: yup.string().required(),
+            title: yup.string().required().default(DEFAULT_PRODUCT_VARIANT.title),
+            value: yup.array<Option>().strip(true),
+            required: yup.boolean().default(DEFAULT_PRODUCT_VARIANT.required),
+            count: yup.number().default(1),
+            options: yup
+              .array(
+                yup.object<Option>({
+                  price: yup
+                    .number()
+                    .transform((value) => (isNaN(value) ? undefined : value))
+                    .default(DEFAULT_PRODUCT_OPTION.price),
+                  id: yup.string().required(),
+                  title: yup.string().default(DEFAULT_PRODUCT_OPTION.title),
+                }),
+              )
+              .default([]),
+          }),
+        )
+        .nullable(),
+      image: yup.string().nullable(),
+    }),
+  },
+  client: {
+    fetch: yup.object<Product>({
+      id: yup.string().required(),
+      createdAt: yup.number().default(DEFAULT_PRODUCT.createdAt),
+      updatedAt: yup.number().default(DEFAULT_PRODUCT.updatedAt),
+      type: yup
+        .string()
+        .oneOf(["available", "unavailable", "ask", "promotional", "variant", "hidden"])
+        .default(DEFAULT_PRODUCT.type),
+      title: yup.string().required().default(DEFAULT_PRODUCT.title),
+      price: yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value))
+        .required()
+        .default(DEFAULT_PRODUCT.price),
+      originalPrice: yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value))
+        .required()
+        .default(DEFAULT_PRODUCT.originalPrice),
+      options: yup
+        .array(
+          yup.object<Variant>({
+            id: yup.string().required(),
+            title: yup.string().default(DEFAULT_PRODUCT_VARIANT.title),
+            value: yup.array<Option>().default(DEFAULT_PRODUCT_VARIANT.value),
+            required: yup.boolean().default(DEFAULT_PRODUCT_VARIANT.required),
+            count: yup.number().default(DEFAULT_PRODUCT_VARIANT.count),
+            options: yup
+              .array(
+                yup.object<Option>({
+                  price: yup
+                    .number()
+                    .transform((value) => (isNaN(value) ? undefined : value))
+                    .default(DEFAULT_PRODUCT_OPTION.price),
+                  id: yup.string().required(),
+                  title: yup.string().default(DEFAULT_PRODUCT_OPTION.title),
+                }),
+              )
+              .default([]),
+          }),
+        )
+        .default([]),
+      category: yup.string().default(DEFAULT_PRODUCT.category).trim(),
+      description: yup.string().default(DEFAULT_PRODUCT.description),
+      featured: yup.boolean().default(DEFAULT_PRODUCT.featured),
+      image: yup.string().default(DEFAULT_PRODUCT.image),
+    }),
+    update: yup.object<Product>({
+      type: yup
+        .string()
+        .oneOf(["available", "unavailable", "ask", "promotional", "variant", "hidden"])
+        .nullable(),
+      createdAt: yup.number().nullable().strip(true),
+      updatedAt: yup.number().nullable().strip(true),
+      category: yup.string().trim().nullable(),
+      description: yup.string().nullable(),
+      featured: yup.boolean().nullable(),
+      id: yup.string().required(),
+      image: yup.string().nullable(),
+      options: yup
+        .array(
+          yup.object<Variant>({
+            id: yup.string().required(),
+            title: yup.string().required().default(DEFAULT_PRODUCT_VARIANT.title),
+            value: yup.array<Option>().strip(true),
+            required: yup.boolean().default(DEFAULT_PRODUCT_VARIANT.required),
+            count: yup.number().default(DEFAULT_PRODUCT_VARIANT.count),
+            options: yup
+              .array(
+                yup.object<Option>({
+                  price: yup
+                    .number()
+                    .transform((value) => (isNaN(value) ? undefined : value))
+                    .default(DEFAULT_PRODUCT_OPTION.price),
+                  id: yup.string().required(),
+                  title: yup.string().default(DEFAULT_PRODUCT_OPTION.title),
+                }),
+              )
+              .default([]),
+          }),
+        )
+        .nullable(),
+      price: yup.number().nullable(),
+      originalPrice: yup.number().nullable(),
+      title: yup.string().nullable(),
+    }),
+    create: yup.object<Product>({
+      id: yup.string().strip(true),
+      createdAt: yup.number().default(DEFAULT_PRODUCT.createdAt),
+      updatedAt: yup.number().default(DEFAULT_PRODUCT.updatedAt),
+      type: yup
+        .string()
+        .oneOf(["available", "unavailable", "ask", "promotional", "variant", "hidden"])
+        .default(DEFAULT_PRODUCT.type),
+      title: yup.string().default(DEFAULT_PRODUCT.title),
+      price: yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value))
+        .default(DEFAULT_PRODUCT.price),
+      originalPrice: yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value))
+        .default(DEFAULT_PRODUCT.originalPrice),
+      options: yup
+        .array(
+          yup
+            .object<Variant>({
+              id: yup.string().required(),
+              title: yup.string().default(DEFAULT_PRODUCT_VARIANT.title),
+              value: yup.array<Option>().strip(true),
+              required: yup.boolean().default(DEFAULT_PRODUCT_VARIANT.required),
+              count: yup.number().default(DEFAULT_PRODUCT_VARIANT.count),
+              options: yup
+                .array(
+                  yup.object<Option>({
+                    price: yup
+                      .number()
+                      .transform((value) => (isNaN(value) ? undefined : value))
+                      .default(DEFAULT_PRODUCT_OPTION.price),
+                    id: yup.string().required(),
+                    title: yup.string().default(DEFAULT_PRODUCT_OPTION.title),
+                  }),
+                )
+                .default([]),
+            })
+            .nullable(),
+        )
+        .default([]),
+      category: yup.string().default(DEFAULT_PRODUCT.category).trim(),
+      description: yup.string().default(DEFAULT_PRODUCT.description),
+      featured: yup.boolean().default(DEFAULT_PRODUCT.featured),
+      image: yup.string().default(DEFAULT_PRODUCT.image),
+    }),
+  },
 };

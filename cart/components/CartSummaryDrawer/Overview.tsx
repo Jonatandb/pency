@@ -8,19 +8,28 @@ import CheckoutButton from "./CheckoutButton";
 import {DrawerTitle, DrawerBody, DrawerFooter} from "~/ui/controls/Drawer";
 import Button from "~/ui/controls/Button";
 import {useTranslation, usePrice} from "~/i18n/hooks";
-import {getCount, getTotal} from "~/cart/selectors";
+import {getCount, getTotal, getFormattedPrice} from "~/cart/selectors";
 import Stepper from "~/ui/inputs/Stepper";
-import {getVariantsString, getVariantsPrice} from "~/product/selectors";
+import {getVariantsString} from "~/product/selectors";
+import CrossIcon from "~/ui/icons/Cross";
 
 interface Props {
   items: CartItem[];
   onDecrease: (id: CartItem["id"]) => void;
   onIncrease: (id: CartItem["id"]) => void;
   onSubmit: () => Promise<void>;
+  onClose: VoidFunction;
   hasNextStep: boolean;
 }
 
-const Overview: React.FC<Props> = ({items, onIncrease, onDecrease, onSubmit, hasNextStep}) => {
+const Overview: React.FC<Props> = ({
+  items,
+  onIncrease,
+  onDecrease,
+  onSubmit,
+  onClose,
+  hasNextStep,
+}) => {
   const [isLoading, toggleLoading] = React.useState(false);
   const t = useTranslation();
   const p = usePrice();
@@ -48,29 +57,45 @@ const Overview: React.FC<Props> = ({items, onIncrease, onDecrease, onSubmit, has
   return (
     <>
       <DrawerBody>
-        <Stack spacing={6}>
+        <CrossIcon
+          background="white"
+          boxShadow="md"
+          cursor="pointer"
+          marginTop={4}
+          paddingX={4}
+          paddingY={3}
+          position="absolute"
+          right={0}
+          roundedLeft="lg"
+          top={0}
+          onClick={onClose}
+        />
+        <Stack marginTop={20} spacing={6}>
           <DrawerTitle>
             {t("cart.yourOrder")} ({count})
           </DrawerTitle>
           <Stack shouldWrapChildren spacing={6}>
-            {items.map(({id, product, count, variants}) => (
-              <Flex key={id} alignItems="flex-start" justifyContent="space-between">
+            {items.map((item) => (
+              <Flex key={item.id} alignItems="flex-start" justifyContent="space-between">
                 <Flex alignItems="center" mr={2}>
                   <Stack spacing={0}>
-                    <Text fontWeight={500}>{product.title}</Text>
-                    {variants && <Text color="gray.600">{getVariantsString(variants)}</Text>}
+                    <Text fontWeight={500} overflowWrap="break-word">
+                      {item.product.title}
+                    </Text>
+                    {item.variants && (
+                      <Text color="gray.600">{getVariantsString(item.variants)}</Text>
+                    )}
+                    {item.note && <Text color="gray.600">({item.note})</Text>}
                     <Stepper
                       marginTop={2}
-                      value={count}
-                      onDecrease={() => handleDecrease(id)}
-                      onIncrease={() => handleIncrease(id)}
+                      value={item.count}
+                      onDecrease={() => handleDecrease(item.id)}
+                      onIncrease={() => handleIncrease(item.id)}
                     />
                   </Stack>
                 </Flex>
                 <Flex alignItems="center">
-                  <Text fontWeight={500}>
-                    {p((product.price + getVariantsPrice(variants)) * count)}
-                  </Text>
+                  <Text fontWeight={500}>{getFormattedPrice(item)}</Text>
                 </Flex>
               </Flex>
             ))}

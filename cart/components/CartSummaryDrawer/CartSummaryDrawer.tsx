@@ -1,4 +1,5 @@
 import React from "react";
+import {IDrawer} from "@chakra-ui/core";
 
 import {CartItem} from "../../types";
 import {getCount} from "../../selectors";
@@ -6,12 +7,11 @@ import {getCount} from "../../selectors";
 import Overview from "./Overview";
 import Fields from "./Fields";
 
-import Drawer, {DrawerHeader} from "~/ui/controls/Drawer";
+import Drawer from "~/ui/controls/Drawer";
 import {ClientTenant, Field} from "~/tenant/types";
 import {useAnalytics} from "~/analytics/hooks";
 
-interface Props {
-  isOpen: boolean;
+interface Props extends Omit<IDrawer, "children"> {
   onClose: VoidFunction;
   items: CartItem[];
   fields?: ClientTenant["fields"];
@@ -26,7 +26,6 @@ const CartSummaryDrawer: React.FC<Props> = ({
   onIncrease,
   onDecrease,
   onCheckout,
-  isOpen,
   onClose,
 }) => {
   const [step, setStep] = React.useState("overview");
@@ -65,26 +64,38 @@ const CartSummaryDrawer: React.FC<Props> = ({
     if (!count) handleClose();
   }, [count, handleClose]);
 
+  React.useEffect(() => {
+    // We want to log this only once on mount
+    log.viewCart(items);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [log]);
+
   return (
     <Drawer
       id="cart"
-      isOpen={isOpen}
       placement="right"
       size="md"
       onAnimationEnd={handleReset}
       onClose={handleClose}
     >
-      <DrawerHeader onBack={step === "fields" && handlePrevious} onClose={handleClose} />
       {step === "overview" && (
         <Overview
           hasNextStep={hasNextStep}
           items={items}
+          onClose={handleClose}
           onDecrease={onDecrease}
           onIncrease={onIncrease}
           onSubmit={hasNextStep ? handleNext : handleCheckoutWithoutFields}
         />
       )}
-      {step === "fields" && <Fields fields={fields} onSubmit={handleCheckoutWithFields} />}
+      {step === "fields" && (
+        <Fields
+          fields={fields}
+          onClose={handleClose}
+          onPrevious={handlePrevious}
+          onSubmit={handleCheckoutWithFields}
+        />
+      )}
     </Drawer>
   );
 };

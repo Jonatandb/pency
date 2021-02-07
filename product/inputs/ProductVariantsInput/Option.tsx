@@ -14,7 +14,6 @@ import Price from "~/ui/inputs/Price";
 
 interface Props {
   index: number;
-  base: number;
   error?: {
     index: number;
     type: string;
@@ -24,7 +23,7 @@ interface Props {
   onChange: (option: Partial<Variant>) => void;
 }
 
-const OptionInput: React.FC<Props> = ({error: _error, value, onChange, base = 0}) => {
+const OptionInput: React.FC<Props> = ({error: _error, value, onChange}) => {
   const error = React.useMemo(() => {
     if (!_error) return null;
 
@@ -74,8 +73,8 @@ const OptionInput: React.FC<Props> = ({error: _error, value, onChange, base = 0}
             const optionError = error?.index === subindex ? error : null;
 
             return (
-              <Stack spacing={0}>
-                <Stack key={option.id} isInline alignItems="flex-start" spacing={0}>
+              <Stack key={option.id} spacing={0}>
+                <Stack isInline alignItems="flex-start" spacing={0}>
                   <FormControl
                     error={optionError?.type === "optionsTitle" && optionError.message}
                     width="100%"
@@ -133,20 +132,13 @@ const OptionInput: React.FC<Props> = ({error: _error, value, onChange, base = 0}
                     </Flex>
                   )}
                 </Stack>
-                {value.count === 1 && (
-                  <FormHelperText>
-                    Precio total ${Number(option.price) + Number(base)}
-                  </FormHelperText>
-                )}
               </Stack>
             );
           })}
         </Stack>
-        {value.count !== 1 && (
-          <FormHelperText>
-            El precio que ingreses a la opción se sumará al valor base del producto.
-          </FormHelperText>
-        )}
+        <FormHelperText>
+          Si seleccionar una opción no debería modificar el precio final, ingresá 0.
+        </FormHelperText>
       </Stack>
       <IconButton
         _hover={{

@@ -14,6 +14,7 @@
     "exit": "Exit",
     "count": "Quantity",
     "products": "Products",
+    "comments": "Comentarios",
     "shop": "Shop",
     "options": "Options",
     "next": "Next",
@@ -58,14 +59,11 @@
       "createStore": "Create store"
     },
     "directory": {
-      "title": {
-        "withLocation": "Get to know the Pency stores community near you",
-        "withoutLocation": "Get to know the Pency stores community"
-      },
-      "subtitle": "¡We are more than 500 stores!",
+      "title": "Join as one of our more than 1000 stores!",
+      "subtitle": "Get to know the Pency stores community near you",
       "noResults": "No results found",
       "footer": {
-        "withLocation": "Showing results withing 25 KM of your location.",
+        "withLocation": "Showing results withing 5 KM of your location.",
         "withoutLocation": "Showing all relevant stores.",
         "seeAll": "See all.",
         "seeNear": "See near."
@@ -78,13 +76,42 @@
       }
     },
     "shout": {
-      "createOnlineStore": "Creá ahora tu tienda online y potenciá la gestión de tu negocio",
+      "createOnlineStore": "Creá gratis tu tienda online y potenciá la gestión de tu negocio",
       "createStore": "Crear tienda",
       "seeDemo": "Ver tienda de prueba"
     },
     "callToAction": {
       "createStore": "Crear tienda",
       "seeDemo": "Ver demo"
+    },
+    "testimonial": {
+      "userName":"Francisco Bellocchio",
+      "message": "\"Pency apareció en el momento justo como una herramienta para ayudar a nuestra marca a potenciar la venta on line y llegar a nuestros clientes de manera simple y segura.\"",
+      "ownerOf": "Dueño de Blondies"
+    }
+  },
+  "cartItemDrawer":{
+    "comments": {
+      "label": "Comments",
+      "help": "140 chars max",
+      "placeholder": "I would like to..."
+    },
+    "share": {
+      "prompt":{
+        "status": "success",
+        "title": "Yeah!",
+        "description": "Link was shared successfully"
+      },
+      "clipboard":{
+        "status": "success",
+        "title": "Link copied",
+        "description": "Link was copied to the clipboard",
+        "error":{
+          "status": "warning",
+          "title": "No se pudo copiar el link",
+          "description": "No se tienen permisos para acceder al portapapeles en este navegador"
+        }
+      }
     }
   },
   "form": {
@@ -96,7 +123,58 @@
   },
   "admin": {
     "preview": "Preview",
-    "empty": "No products found"
+    "empty": "No products found",
+    "home":{
+      "introduction": {
+        "title": "Hola",
+        "blurb": "Comenzar a utilizar una nueva herramienta nunca es fácil, por eso lo hicimos bien simple. Seguí estos pasos y en unos minutos tendrás tu tienda lista para compartir."
+      },
+      "contact": {
+        "title": "Si necesitas ayuda, escribinos:"
+      },
+      "challenges": {
+        "title": "Comenzá con estos desafíos:",
+        "first": {
+          "title": "Completá la info de tu negocio",
+          "description": "Nombre de tu negocio, rubro, una descripción y número de whatsapp."
+        },
+        "second": {
+          "title": "Personalizá tu tienda",
+          "description": "Subí tu logo, una imagen de cabecera y elegí el color de tu tienda."
+        },
+        "third": {
+          "title": "Cargá tus productos",
+          "description": "Cargá tus productos y empezá a vender ya!"
+        }
+      },
+      "assets": {
+        "title": "Print and share your QR code",
+        "footer": "Scanning this code will get your clients to your store."
+      },
+      "tiers": {
+        "free": {
+          "name": "Entrepreneur",
+          "features": {
+            "update": "At 00:00 (UTC) every day.",
+            "products": "100."
+          }
+        },
+        "preferential": {
+          "name": "Preferential",
+          "features": {
+            "update": "Every hour.",
+            "products": "100."
+          }
+        },
+        "commercial": {
+          "name": "Commercial",
+          "features": {
+            "update": "Realtime.",
+            "products": "Unlimited."
+          }
+        }
+      }
+    }
   },
   "cart": {
     "yourOrder": "Your order",
@@ -110,6 +188,11 @@
     "variants": {
       "countError": "You must select {{count}} options",
       "emptyError": "You must select at least one option"
+    },
+    "footer": {
+      "lastUpdate": "Last update",
+      "nextUpdate": "Next update",
+      "createdWith": "Created with"
     }
   },
   "auth": {

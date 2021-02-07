@@ -1,7 +1,7 @@
 import React from "react";
 import {Box, Grid} from "@chakra-ui/core";
 
-import {COLORS} from "~/app/constants";
+import {COLORS} from "~/app/constants/catalogs";
 
 interface Props {
   value?: string;
@@ -20,7 +20,7 @@ const ColorRadio: React.FC<Props> = (props) => {
       gridTemplateColumns="repeat(auto-fit, minmax(40px,1fr));"
       justifyContent="center"
     >
-      {Object.keys(COLORS).map((color) => {
+      {COLORS.map((color) => {
         const isSelected = value === color;
 
         return (

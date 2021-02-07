@@ -1,5 +1,5 @@
 import React from "react";
-import {Stack, Box, PseudoBox, Flex, useDisclosure} from "@chakra-ui/core";
+import {Stack, Box, PseudoBox, Flex, useDisclosure, Text} from "@chakra-ui/core";
 import {useRouter} from "next/router";
 
 import ProductCard from "../../components/ProductCard";
@@ -9,6 +9,7 @@ import ProductsCarousel from "../../components/ProductsCarousel";
 
 import Onboarding from "./Onboarding";
 
+import Logo from "~/ui/static/Logo";
 import {useCart} from "~/cart/hooks";
 import {groupBy} from "~/selectors/group";
 import CartSummaryDrawer from "~/cart/components/CartSummaryDrawer";
@@ -21,18 +22,17 @@ import Content from "~/ui/structure/Content";
 import SummaryButton from "~/cart/components/SummaryButton";
 import CartItemDrawer from "~/cart/components/CartItemDrawer";
 import {Product, Variant} from "~/product/types";
-import {useAnalytics} from "~/analytics/hooks";
+import Link from "~/ui/controls/Link";
 
 const ProductsScreen: React.FC = () => {
   const {
     query: {product},
     push,
   } = useRouter();
-  const log = useAnalytics();
   const {add, increase, decrease, items, checkout} = useCart();
   const t = useTranslation();
   const {isOpen: isCartOpen, onOpen: openCart, onClose: closeCart} = useDisclosure();
-  const {products, filters} = useFilteredProducts();
+  const {products, filters} = useFilteredProducts((product) => product.type !== "hidden");
   const {highlight, fields, layout, ...tenant} = useTenant();
   const selected = React.useMemo(() => products.find((_product) => _product.id === product), [
     products,
@@ -42,16 +42,14 @@ const ProductsScreen: React.FC = () => {
   const featuredProducts = filterBy(products, {featured: true});
   const productsByCategory = groupBy(products, (product) => product.category);
 
-  function handleAdd(product: Product, options: Variant[], count: number) {
-    add(product, options, count);
+  function handleAdd(product: Product, options: Variant[], count: number, note: string) {
+    add(product, options, count, note);
 
     push(`/[slug]`, `/${tenant.slug}`, {shallow: true});
   }
 
   function handleOpenCart() {
     openCart();
-
-    log.viewCart(items);
   }
 
   function handleCloseSelected() {
@@ -79,15 +77,7 @@ const ProductsScreen: React.FC = () => {
   return (
     <>
       <Flex direction="column" height="100%">
-        <Flex
-          as="main"
-          backgroundColor="white"
-          direction="column"
-          flex={1}
-          height="100%"
-          overflowX="hidden"
-          overflowY="auto"
-        >
+        <Flex as="main" backgroundColor="white" direction="column" flex={1} height="100%">
           <Content height="100%" paddingX={{base: 0, sm: 4}}>
             <TenantHeader data-test-id="header" marginBottom={4} tenant={tenant} />
             <Box flex={1}>
@@ -106,19 +96,21 @@ const ProductsScreen: React.FC = () => {
                   {highlight}
                 </Box>
               )}
-              <Box marginBottom={{base: 5, sm: 10}}>
-                <Flex
-                  backgroundColor="gray.50"
-                  data-test-id="filters"
-                  roundedBottom="lg"
-                  roundedTop={highlight ? "none" : "lg"}
-                >
-                  <Box paddingX={4} paddingY={1}>
-                    {filters}
-                  </Box>
-                </Flex>
+              <Box
+                backgroundColor="gray.50"
+                data-test-id="filters"
+                marginBottom={{base: 5, sm: 10}}
+                paddingX={4}
+                paddingY={1}
+                position="sticky"
+                roundedBottom="lg"
+                roundedTop={highlight ? "none" : "lg"}
+                top={0}
+                zIndex={3}
+              >
+                {filters}
               </Box>
-              <Box paddingX={{base: 4, sm: 0}}>
+              <Box marginBottom={4} paddingX={{base: 4, sm: 0}}>
                 <Stack margin="auto" spacing={5} width="100%">
                   {Boolean(products.length) ? (
                     <Stack spacing={{base: 5, sm: 10}} width="100%">
@@ -138,12 +130,7 @@ const ProductsScreen: React.FC = () => {
                       )}
                       {productsByCategory.map(([category, products]) => {
                         return (
-                          <PseudoBox
-                            key={category}
-                            _last={{marginBottom: 4}}
-                            as="section"
-                            id={category}
-                          >
+                          <PseudoBox key={category} as="section" id={category}>
                             <ProductsGrid data-test-id="category" layout={layout} title={category}>
                               {products.map((product) => (
                                 <ProductCard
@@ -161,51 +148,64 @@ const ProductsScreen: React.FC = () => {
                   ) : (
                     <NoResults data-test-id="empty">{t("products.empty")}</NoResults>
                   )}
-                  {Boolean(items.length) && (
-                    <Flex
-                      as="nav"
-                      bottom={0}
-                      justifyContent="center"
-                      margin={{base: 0, sm: "auto"}}
-                      paddingBottom={4}
-                      position="sticky"
-                      zIndex={2}
-                    >
-                      <Box
-                        display="block"
-                        margin={{base: 0, sm: "auto"}}
-                        minWidth={{base: "100%", sm: 64}}
-                        rounded={4}
-                        width={{base: "100%", sm: "auto"}}
-                      >
-                        <SummaryButton items={items} onClick={handleOpenCart}>
-                          {t("products.review")}
-                        </SummaryButton>
-                      </Box>
-                    </Flex>
-                  )}
                 </Stack>
               </Box>
             </Box>
           </Content>
         </Flex>
       </Flex>
-      <CartSummaryDrawer
-        fields={fields}
-        isOpen={isCartOpen}
-        items={items}
-        onCheckout={checkout}
-        onClose={closeCart}
-        onDecrease={decrease}
-        onIncrease={increase}
-      />
-      {selected && (
-        <CartItemDrawer
-          isOpen
-          product={selected}
-          onClose={handleCloseSelected}
-          onSubmit={handleAdd}
+      {Boolean(items.length) && (
+        <Flex
+          as="nav"
+          bottom={0}
+          justifyContent="center"
+          margin={{base: 0, sm: "auto"}}
+          paddingBottom={4}
+          paddingX={4}
+          position="sticky"
+          width="100%"
+          zIndex={2}
+        >
+          <Box
+            display="block"
+            margin={{base: 0, sm: "auto"}}
+            minWidth={{base: "100%", sm: 64}}
+            rounded={4}
+            width={{base: "100%", sm: "auto"}}
+          >
+            <SummaryButton items={items} onClick={handleOpenCart}>
+              {t("products.review")}
+            </SummaryButton>
+          </Box>
+        </Flex>
+      )}
+      <Content>
+        <Flex
+          alignItems={{base: "center", sm: "flex-end"}}
+          direction={{base: "column", sm: "row"}}
+          justifyContent="flex-end"
+          padding={4}
+        >
+          <Link href="/">
+            <Stack isInline alignItems="center" spacing={1}>
+              <Text fontSize="sm">{t("products.footer.createdWith")}</Text>
+              <Logo size={12} />
+            </Stack>
+          </Link>
+        </Flex>
+      </Content>
+      {isCartOpen && (
+        <CartSummaryDrawer
+          fields={fields}
+          items={items}
+          onCheckout={checkout}
+          onClose={closeCart}
+          onDecrease={decrease}
+          onIncrease={increase}
         />
+      )}
+      {Boolean(selected) && (
+        <CartItemDrawer product={selected} onClose={handleCloseSelected} onSubmit={handleAdd} />
       )}
       <Onboarding />
     </>

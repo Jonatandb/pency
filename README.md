@@ -28,7 +28,7 @@ Mandame un mail a gonzalo.pozzo4@gmail.com
 ## ¿Cómo puedo correr el proyecto?
 Completá todas las variables que aparecen en `.env.template` y guardalo como `.env.development.local`
 
-Todas las variables de firebase las encontramos en la configuración del proyecto de firebase.
+Todas las variables de firebase las encontramos en la configuración del proyecto de firebase, `GOOGLE_API_KEY` es la api key de firebase, pero como también necesitamos usarla para Google Places le cambié el nombre, tomá en cuenta que para que funcione el campo de `ubicación` necesitás tener la api de places habilitada en el proyecto y billing activado (o podés no usar el campo / deshabilitarlo, la app funciona sin eso).
 
 En `firebase/credentials.ts` están las credenciales de firebase admin para cada ambiente, necesitás obtener el json de una cuenta de servicio que podés encontrar en firebase yendo a `Configuración > Usuarios y permisos > Cuentas de servicio` y generando una nueva clave privada. Después andá a https://www.devglan.com/online-tools/aes-encryption-decryption y seleccioná tu archivo de credenciales, en `mode` seleccioná `CBC`, `Key Size in Bits` `128`, `Enter IV (Optional)` la misma clave iv que en tu archivo `.env.development.local`, `Enter Secret Key` la misma secret key que en tu archivo `.env.development.local`, `Output Text Format` en `Base64`, clickea `Encrypt` y pegá el contenido en `firebase/credentials.ts` en el ambiente que corresponda.
 
@@ -77,17 +77,18 @@ npm install && npm run dev
 ## Creando la tienda
  - Bajamos y abrimos [Postman](https://www.postman.com/downloads/).
  - Comprobamos que la aplicación este corriendo en **http://localhost:3000/**.
- - Seleccionamos POST Request y colocamos como URL: `http://localhost:3000/api/tenant/NOMBRE_DE_TU_TIENDA` (si bien podemos poner lo que queramos en slug recomiendo que sean solo letras minúsculas y guiones)
+ - Seleccionamos POST Request y colocamos como URL: `http://localhost:3000/api/tenant` (si bien podemos poner lo que queramos en slug recomiendo que sean solo letras minúsculas y guiones)
  - En `body` seleccionamos `x-www-form-urlencoded` y colocamos los siguientes valores:
 ```markdown
 	|   KEY  |                    VALUE                         |
 	|:------:|:------------------------------------------------:|
+	|slug    | slug de la tienda                                |
 	|email   | tuEmail@email.com                                |
 	|password| tuContraseña                                     |
 	|secret  | valor de SECRET en .env.[ambiente].local         |
 ```
- - Hacemos click en `Send` y comprobamos si se creó la tienda entrando en: `http://localhost:3000/NOMBRE_DE_TU_TIENDA`
- -  Para acceder al panel de administración debemos entrar mediante el siguiente link: `http://localhost:3000/NOMBRE_DE_TU_TIENDA/admin`
+ - Hacemos click en `Send` y comprobamos si se creó la tienda seteando la variable `STORE_SLUG` con el nombre de la tienda y entrando en: `http://localhost:3000`
+ -  Para acceder al panel de administración debemos entrar mediante el siguiente link: `http://localhost:3000/admin`
  > Tomá en cuenta que ya que usamos el uid del usuario como id del documento, no podémos tener más de un usuario por tienda ni tampoco más de una tienda por usuario.
 
 ## ¿Qué puedo hacer con Pency?

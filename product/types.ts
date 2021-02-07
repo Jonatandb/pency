@@ -1,11 +1,14 @@
 export interface Product {
   id: string;
+  createdAt: number;
+  updatedAt: number;
   title: string;
   description?: string;
   category?: string;
   image?: string | undefined;
   price: number;
-  available: boolean;
+  originalPrice?: number;
+  type: "available" | "unavailable" | "variant" | "hidden" | "promotional" | "ask";
   options?: Variant[];
   featured?: boolean;
 }

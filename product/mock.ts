@@ -11,7 +11,10 @@ export default {
       description: faker.lorem.paragraph(),
       title: faker.commerce.productName(),
       price: Number(faker.commerce.price()),
-      available: true,
+      originalPrice: Number(faker.commerce.price()),
+      createdAt: faker.random.number(999999999),
+      updatedAt: faker.random.number(999999999),
+      type: "available",
       featured: true,
       options: [],
     };
@@ -51,5 +54,14 @@ export default {
         {...this.variant, count: 1},
       ],
     };
+  },
+  get withoutVariantsValue(): Product {
+    const product = this.full;
+
+    product.options.forEach((option) => {
+      delete option.value;
+    });
+
+    return product;
   },
 };

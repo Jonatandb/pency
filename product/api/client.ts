@@ -4,15 +4,35 @@ import {ClientTenant} from "~/tenant/types";
 import fetch from "~/utils/fetch";
 
 export default {
-  list: (tenant: ClientTenant["id"]) => fetch("GET", `/api/product?tenant=${tenant}`),
-  create: (tenant: ClientTenant["id"], product: Product) =>
-    fetch("POST", `/api/product?tenant=${tenant}`, {product}),
-  remove: (tenant: ClientTenant["id"], product: Product["id"]) =>
-    fetch("DELETE", `/api/product?tenant=${tenant}&product=${product}`),
-  update: (tenant: ClientTenant["id"], product: Product) =>
-    fetch("PATCH", `/api/product?tenant=${tenant}`, {product}),
-  bulk: {
-    update: (tenant: ClientTenant["id"], products: Product[]) =>
-      fetch("PUT", `/api/product?tenant=${tenant}`, {products}),
-  },
+  create: (tenant: ClientTenant["slug"], product: Product) =>
+    fetch(
+      "POST",
+      `/api/tenant/${tenant}/product`,
+      {product},
+      {
+        Authorization: window.localStorage.getItem("token"),
+      },
+    ),
+  remove: (tenant: ClientTenant["slug"], product: Product["id"]) =>
+    fetch("DELETE", `/api/tenant/${tenant}/product?product=${product}`, null, {
+      Authorization: window.localStorage.getItem("token"),
+    }),
+  update: (tenant: ClientTenant["slug"], product: Partial<Product>) =>
+    fetch(
+      "PATCH",
+      `/api/tenant/${tenant}/product`,
+      {product},
+      {
+        Authorization: window.localStorage.getItem("token"),
+      },
+    ),
+  upsert: (tenant: ClientTenant["slug"], products: Partial<Product>[]): Promise<Product[]> =>
+    fetch(
+      "PUT",
+      `/api/tenant/${tenant}/product`,
+      {products},
+      {
+        Authorization: window.localStorage.getItem("token"),
+      },
+    ),
 };

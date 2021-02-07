@@ -5,6 +5,7 @@ import produce from "immer";
 import {Product, Variant} from "../product/types";
 
 import {CartItem, Context, State, Actions, Cart} from "./types";
+import {getOrderId} from "./selectors";
 import api from "./api";
 
 import {useAnalytics} from "~/analytics/hooks";
@@ -25,7 +26,7 @@ const CartProvider = ({children}: Props) => {
   const [cart, setCart] = React.useState<Cart>({});
   const items = React.useMemo(() => [].concat(...Object.values(cart)), [cart]);
 
-  function add(product: Product, variants: Variant[], count: number = 1) {
+  function add(product: Product, variants: Variant[], count: number = 1, note: string = "") {
     log.addToCart(product, variants, count);
 
     return setCart(
@@ -37,6 +38,7 @@ const CartProvider = ({children}: Props) => {
           variants,
           count,
           product,
+          note,
         };
       }),
     );
@@ -80,7 +82,7 @@ const CartProvider = ({children}: Props) => {
 
   async function checkout(fields?: Field[]) {
     // We generate an order id
-    const orderId = shortid.generate();
+    const orderId = getOrderId(slug);
 
     // Log to analytics
     log.checkout(orderId, items);
@@ -94,7 +96,7 @@ const CartProvider = ({children}: Props) => {
 
         // If a webhook is configured, do a post to it
         if (hook) {
-          api.hook(hook, {items, orderId, fields, preference});
+          api.hook(hook, {phone, items, orderId, fields, preference});
         }
 
         // Redirect the new tab to the corresponding url
@@ -105,9 +107,10 @@ const CartProvider = ({children}: Props) => {
       }
     }
 
-    // If a webhook is configured, do a post to it
+    // If a webhook is configured
     if (hook) {
-      api.hook(hook, {items, orderId, fields});
+      // Do a post to it
+      api.hook(hook, {phone, items, orderId, fields});
     }
 
     // If we don't have mercadopago configured and selected, redirect the user to whatsapp

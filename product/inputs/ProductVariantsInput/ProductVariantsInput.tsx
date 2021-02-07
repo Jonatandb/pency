@@ -1,5 +1,5 @@
 import React from "react";
-import {Stack} from "@chakra-ui/core";
+import {Stack, StackProps} from "@chakra-ui/core";
 import produce from "immer";
 import {FieldError} from "react-hook-form";
 
@@ -17,14 +17,13 @@ import SwitchInput from "~/ui/inputs/Switch";
 import ChevronUpIcon from "~/ui/icons/ChevronUp";
 import ChevronDownIcon from "~/ui/icons/ChevronDown";
 
-interface Props {
+interface Props extends Omit<StackProps, "onChange"> {
   value?: Partial<Variant[]>;
   error?: FieldError;
-  base?: number;
   onChange: (options: Variant[]) => void;
 }
 
-const ProductVariantsInput: React.FC<Props> = ({value = [], error: _error, base = 0, onChange}) => {
+const ProductVariantsInput: React.FC<Props> = ({value = [], error: _error, onChange, ...props}) => {
   const [active, setActive] = React.useState(null);
   const error = React.useMemo(() => {
     if (!_error) return null;
@@ -85,7 +84,7 @@ const ProductVariantsInput: React.FC<Props> = ({value = [], error: _error, base 
   }
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} {...props}>
       {value?.map((option, index) => {
         const variantError = error?.index === index ? error : null;
 
@@ -125,14 +124,13 @@ const ProductVariantsInput: React.FC<Props> = ({value = [], error: _error, base 
                 onChange={(checked) => handleRequiredChange(index, checked)}
               />
             </FormControl>
-            <FormControl isRequired label="Cuantas opciones podrá elegir?">
+            <FormControl isRequired label="Cuantas opciones se podrá elegir?">
               <CountInput
                 value={option.count}
                 onChange={(count) => handleCountChange(count, index)}
               />
             </FormControl>
             <OptionInput
-              base={base}
               error={variantError}
               index={index}
               value={option}
